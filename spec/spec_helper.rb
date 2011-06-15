@@ -18,10 +18,14 @@ RSpec.configure do |config|
 
   # Include the Rack test methods
   config.include Rack::Test::Methods
+
+  config.before(:each) do
+    @app = GithubMirrorApp.new
+  end
 end
 
 # Add an app method for RSpec
 def app
-  GithubMirrorApp.new
+  @app
 end
 
