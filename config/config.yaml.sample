@@ -1,2 +1,7 @@
 allowed_owners:
  - liquidconcept
+mirrors:
+  default:
+    path: '/change/this/path/to/repositories/root'
+    patterns:
+      exemple: ^(.+)$

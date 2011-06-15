@@ -20,6 +20,30 @@ class GithubMirrorApp
     @config ||= YAML.load_file(File.expand_path('../../config/config.yaml', __FILE__))
   end
 
+  def local_path(repository_owner, repository_name)
+    mirror_config = config['mirrors']["#{repository_owner}/#{repository_name}"] || config['mirrors']['default']
+
+    mirror_path     = mirror_config['path'] || raise(GithubMirrorError, "Path for repository '#{repository_owner}/#{repository_name}' don't exist in config")
+    mirror_patterns = (mirror_config['patterns'] || {}).merge({'repository_name' => '^(.+)$'})
+
+    keys = mirror_path.scan(/:(\w+)/).flatten
+    unless keys.empty?
+      keys.each do |key|
+        if key == 'repository_owner' && !mirror_patterns.has_key?('repository_owner')
+          value = repository_owner
+        else
+          value = repository_name.match(mirror_patterns[key])[1] rescue raise(GithubMirrorError, "Repository name pattern have an error for key `#{key}`: #{mirror_patterns[key] || 'no pattern'}")
+        end
+        mirror_path.gsub!(/:#{key}/, value)
+      end
+    else
+      mirror_path = File.join(mirror_path, "#{repository_name}.git")
+    end
+    mirror_path += '.git' unless mirror_path.match(/\.git$/)
+
+    mirror_path
+  end
+
   def handle_request
     raise GithubMirrorError, 'Only POST request allowed' unless @request.post? # return fail message if request is not a POST
 
@@ -38,21 +62,19 @@ class GithubMirrorApp
       repository_url = "git://github.com/#{repository_owner}/#{repository_name}.git"
     end
 
-    # get mirror configuration for current repository
-    mirror_config = config['mirrors']["#{repository_owner}/#{repository_name}"] || config['mirrors']['default']
-
-    mirror_path   = File.join(mirror_config['root'], "#{repository_name}.git")
+    # get mirror path
+    repository_path = local_path(repository_owner, repository_name)
 
     # clone repository if mirror doesn't exist
-    unless File.exist?(mirror_path)
-      system("git clone --mirror --origin github_mirroring #{repository_url} #{mirror_path}")
+    unless File.exist?(repository_path)
+      system("git clone --mirror --origin github_mirroring #{repository_url} #{repository_path}")
 
     # fetch repository if mirror already exist
     else
-      if `cd #{mirror_path}; git remote` !~ /github_mirroring/
-        system("cd #{mirror_path}; git remote add --mirror github_mirroring #{repository_url}")
+      if `cd #{repository_path}; git remote` !~ /github_mirroring/
+        system("cd #{repository_path}; git remote add --mirror github_mirroring #{repository_url}")
       end
-      system("cd #{mirror_path}; git fetch github_mirroring")
+      system("cd #{repository_path}; git fetch github_mirroring")
     end
 
     # end

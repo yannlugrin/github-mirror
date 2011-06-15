@@ -51,7 +51,7 @@ describe 'Github Mirror App' do
     @app.stub!(:config).and_return({
       'mirrors' => {
         'default' => {
-          'root' => File.expand_path('../../fixtures/mirrors_root', __FILE__)
+          'path' => File.expand_path('../../fixtures/mirrors_root', __FILE__)
         }
       }
     })
@@ -62,6 +62,31 @@ describe 'Github Mirror App' do
   it 'should read config file' do
     @app.unstub!(:config)
     @app.send(:config).should == YAML.load_file(File.expand_path('../../../config/config.yaml', __FILE__))
+  end
+
+  it '#local_path should return local path with repository name appended (/local/path => /local/path/repository_name.git)' do
+    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/'}}})
+    @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
+  end
+
+  it '#local_path should return local path with default matched name appended ((/local/path/:repository_name.git => /local/path/repository_name.git)' do
+    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:repository_name.git'}}})
+    @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
+  end
+
+  it '#local_path should return local path with custom matched name appended ((/local/path/:custom_match.git => /local/path/cutom_result.git)' do
+    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:custom_match.git', 'patterns' => {'custom_match' => '^[^\-]+\-(.+)'}}}})
+    @app.send(:local_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/repo_name.git'
+  end
+
+  it '#local_path should return local path with custom multiple matched name appended ((/local/path/:custom_match.git => /local/path/cutom_result.git)' do
+    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:custom_dir/:custom_name.git', 'patterns' => {'custom_dir' => '^([^\-]+)', 'custom_name' => '^[^\-]+\-(.+)'}}}})
+    @app.send(:local_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/before/repo_name.git'
+  end
+
+  it '#local_path should return local path with repository owner ((/local/path/:repository_owner/:repository_name.git => /local/path/repository_owner/repository_owner.git)' do
+    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:repository_owner/:repository_name.git'}}})
+    @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/owner_name/repo_name.git'
   end
 
   it 'should reply with fail message on GET' do
