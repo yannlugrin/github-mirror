@@ -1,4 +1,4 @@
 tmp/**
 log/**
-config/config.yaml
+config/config.yml
 .bundle
