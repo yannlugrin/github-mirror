@@ -178,4 +178,12 @@ describe 'Github Mirror App' do
 
     post '/', :payload => GITHUB_JSON.to_json
   end
+
+  it 'should use ssh url for repository if is private' do
+    repository_private(true)
+    File.should_receive(:exist?).with(mirror_path).and_return(false)
+    @app.should_receive(:system).with(/git@github\.com:#{repository_owner}\/#{repository_name}/).and_return(true)
+
+    post '/', :payload => GITHUB_JSON.to_json
+  end
 end

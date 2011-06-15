@@ -62,7 +62,7 @@ class GithubMirrorApp
 
     # generate url (for private or public project)
     if repository_private
-      repository_url = "git@github.com:.git"
+      repository_url = "git@github.com:#{repository_owner}/#{repository_name}.git"
     else
       repository_url = "git://github.com/#{repository_owner}/#{repository_name}.git"
     end
