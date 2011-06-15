@@ -26,3 +26,13 @@ end
 def mirror_path(repository_name = repository_name)
   File.join(File.expand_path('../../fixtures/mirrors_root', __FILE__), "#{repository_name}.git")
 end
+
+def config(config = {})
+  {
+    'mirrors' => {
+      'default' => {
+        'path' => File.expand_path('../../fixtures/mirrors_root', __FILE__)
+      }
+    }
+  }.merge(config)
+end

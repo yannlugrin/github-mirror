@@ -55,9 +55,14 @@ class GithubMirrorApp
 
     repository_private = payload['repository']['private'] == '1' ? true : false
 
+    # check if repository can be mirrored
+    unless (config['allowed'] || ['*/*']).any? {|allowed_pattern| "#{repository_owner}/#{repository_name}" =~ /^#{allowed_pattern.gsub(/\*+/, '[^/]+')}$/ }
+      raise(GithubMirrorError, "Repository #{repository_owner}/#{repository_name} is not allowed to be mirrored")
+    end
+
     # generate url (for private or public project)
     if repository_private
-      repository_url = "git@github.com:#{repository_owner}/#{repository_name}.git"
+      repository_url = "git@github.com:.git"
     else
       repository_url = "git://github.com/#{repository_owner}/#{repository_name}.git"
     end

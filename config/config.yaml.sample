@@ -1,5 +1,5 @@
-allowed_owners:
- - liquidconcept
+allowed:
+ - liquidconcept/*
 mirrors:
   default:
     path: '/change/this/path/to/repositories/root'

@@ -48,13 +48,7 @@ INVALID_JSON
 describe 'Github Mirror App' do
 
   before(:each) do
-    @app.stub!(:config).and_return({
-      'mirrors' => {
-        'default' => {
-          'path' => File.expand_path('../../fixtures/mirrors_root', __FILE__)
-        }
-      }
-    })
+    @app.stub!(:config).and_return(config)
     @app.stub!(:system).and_return(true)
     @app.stub!(:`).and_return('')
   end
@@ -65,27 +59,27 @@ describe 'Github Mirror App' do
   end
 
   it '#local_path should return local path with repository name appended (/local/path => /local/path/repository_name.git)' do
-    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/'}}})
+    @app.stub!(:config).and_return(config({'mirrors' => {'default' => {'path' => '/tmp/repo/'}}}))
     @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
   end
 
   it '#local_path should return local path with default matched name appended ((/local/path/:repository_name.git => /local/path/repository_name.git)' do
-    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:repository_name.git'}}})
+    @app.stub!(:config).and_return(config({'mirrors' => {'default' => {'path' => '/tmp/repo/:repository_name.git'}}}))
     @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
   end
 
   it '#local_path should return local path with custom matched name appended ((/local/path/:custom_match.git => /local/path/cutom_result.git)' do
-    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:custom_match.git', 'patterns' => {'custom_match' => '^[^\-]+\-(.+)'}}}})
+    @app.stub!(:config).and_return(config({'mirrors' => {'default' => {'path' => '/tmp/repo/:custom_match.git', 'patterns' => {'custom_match' => '^[^\-]+\-(.+)'}}}}))
     @app.send(:local_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/repo_name.git'
   end
 
   it '#local_path should return local path with custom multiple matched name appended ((/local/path/:custom_match.git => /local/path/cutom_result.git)' do
-    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:custom_dir/:custom_name.git', 'patterns' => {'custom_dir' => '^([^\-]+)', 'custom_name' => '^[^\-]+\-(.+)'}}}})
+    @app.stub!(:config).and_return(config({'mirrors' => {'default' => {'path' => '/tmp/repo/:custom_dir/:custom_name.git', 'patterns' => {'custom_dir' => '^([^\-]+)', 'custom_name' => '^[^\-]+\-(.+)'}}}}))
     @app.send(:local_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/before/repo_name.git'
   end
 
-  it '#local_path should return local path with repository owner ((/local/path/:repository_owner/:repository_name.git => /local/path/repository_owner/repository_owner.git)' do
-    @app.stub!(:config).and_return({'mirrors' => {'default' => {'path' => '/tmp/repo/:repository_owner/:repository_name.git'}}})
+  it '#local_path should return local path with repository owner ((/local/path/:repository_owner/:repository_name.git => /local/path/repository_owner/repository_name.git)' do
+    @app.stub!(:config).and_return(config({'mirrors' => {'default' => {'path' => '/tmp/repo/:repository_owner/:repository_name.git'}}}))
     @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/owner_name/repo_name.git'
   end
 
@@ -118,6 +112,42 @@ describe 'Github Mirror App' do
   end
 
   it 'should reply with success message on POST with valid payload' do
+    post '/', :payload => GITHUB_JSON.to_json
+
+    last_response.should be_ok
+    last_response.body.should == 'done'
+  end
+
+  it 'should reply with fail message if owner is not allowed to be mirrored' do
+    @app.stub!(:config).and_return(config({'allowed' => ['other_owner/*']}))
+
+    post '/', :payload => GITHUB_JSON.to_json
+
+    last_response.should be_ok
+    last_response.body.should =~ /fail:/
+  end
+
+  it 'should reply with succes message if all owner\'s repositories is allowed to be mirrored' do
+    @app.stub!(:config).and_return(config({'allowed' => ["#{repository_owner}/*"]}))
+
+    post '/', :payload => GITHUB_JSON.to_json
+
+    last_response.should be_ok
+    last_response.body.should == 'done'
+  end
+
+  it 'should reply with fail message if repository is not allowed to be mirrored' do
+    @app.stub!(:config).and_return(config({'allowed' => ["#{repository_owner}/other_name"]}))
+
+    post '/', :payload => GITHUB_JSON.to_json
+
+    last_response.should be_ok
+    last_response.body.should =~ /fail:/
+  end
+
+  it 'should reply with success message if repository is allowed to be mirrored' do
+    @app.stub!(:config).and_return(config({'allowed' => ["#{repository_owner}/#{repository_name}"]}))
+
     post '/', :payload => GITHUB_JSON.to_json
 
     last_response.should be_ok
