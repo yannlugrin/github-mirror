@@ -57,7 +57,7 @@ class GithubMirrorApp
 
     # end
     @response.write 'done'
-  rescue GithubMirrorError
-    @response.write 'fail'
+  rescue GithubMirrorError => e
+    @response.write "fail: #{e.message}"
   end
 end

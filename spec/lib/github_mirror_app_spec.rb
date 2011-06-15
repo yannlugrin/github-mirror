@@ -68,28 +68,28 @@ describe 'Github Mirror App' do
     get '/'
 
     last_response.should be_ok
-    last_response.body.should == 'fail'
+    last_response.body.should =~ /fail:/
   end
 
   it 'should reply with fail message on POST without payload' do
     post '/'
 
     last_response.should be_ok
-    last_response.body.should == 'fail'
+    last_response.body.should =~ /fail:/
   end
 
   it 'should reply with fail message on POST with empty payload' do
     post '/', :payload => ''
 
     last_response.should be_ok
-    last_response.body.should == 'fail'
+    last_response.body.should =~ /fail:/
   end
 
   it 'should reply with fail message on POST with invalid payload' do
     post '/', :payload => INVALID_JSON.to_json
 
     last_response.should be_ok
-    last_response.body.should == 'fail'
+    last_response.body.should =~ /fail:/
   end
 
   it 'should reply with success message on POST with valid payload' do
