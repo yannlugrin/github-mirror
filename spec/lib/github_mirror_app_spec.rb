@@ -38,6 +38,10 @@ GITHUB_JSON
 
 describe 'Github Mirror App' do
 
+  it 'should read config file' do
+    app.send(:config).should == YAML.load_file(File.expand_path('../../../config/config.yaml', __FILE__))
+  end
+
   it 'should reply with fail message on GET' do
     get '/'
 

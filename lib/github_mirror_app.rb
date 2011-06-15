@@ -14,6 +14,10 @@ class GithubMirrorApp
 
   private
 
+  def config
+    @config ||= YAML.load_file(File.expand_path('../../config/config.yaml', __FILE__))
+  end
+
   def handle_request
     raise 'Only POST request allowed' unless @request.post? # return fail message if request is not a POST
 
