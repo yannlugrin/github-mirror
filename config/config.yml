@@ -1,0 +1,4 @@
+- repositories:
+  - */*
+  allowed: true
+  path: '/var/github-mirrors'
