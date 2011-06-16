@@ -27,11 +27,16 @@ def mirror_path(repository_name = repository_name)
   File.join(File.expand_path('../../fixtures/mirrors_root', __FILE__), "#{repository_name}.git")
 end
 
-def config(config = {})
-  {
-    '*/*' => {
-      'allowed' => true,
-      'path'    => File.expand_path('../../fixtures/mirrors_root', __FILE__)
+def config(override = {})
+  config = {
+    'repositories' => {
+      '*/*' => {
+        'allowed' => true,
+        'path'    => File.expand_path('../../fixtures/mirrors_root', __FILE__)
+      }
     }
-  }.merge(config)
+  }
+  config['repositories'].merge!(override.delete('repositories') || {})
+  config.merge!(override)
+  config
 end

@@ -7,6 +7,10 @@ class GithubMirror
   class GithubMirrorError < StandardError # :nodoc:
   end
 
+  def initialize
+    @config_file_path = File.expand_path('../../config/config.yml', __FILE__)
+  end
+
   # Rack API method
   def call(env)
     @request  = Rack::Request.new(env)
@@ -19,6 +23,11 @@ class GithubMirror
 
   private
 
+  # Load configuration from file
+  def config
+    @config ||= YAML.load_file(@config_file_path)
+  end
+
   # Return an object with reader method for allowed, path and patterns
   # attributes builded from configuration file.
   #
@@ -29,15 +38,14 @@ class GithubMirror
   # - repository_owner/*
   # - repository_owner*/*
   # - */*
-  def config(repository_owner, repository_name, reload = false)
-    if @loaded_config.nil? || reload
-      @loaded_config = YAML.load_file(File.expand_path('../../config/config.yml', __FILE__))
+  def repository_info(repository_owner, repository_name, reload = false)
+    if @repository_info.nil? || reload
+      @repository_info = {}
 
-      @config = {}
-      @config.default_proc = proc {|hash, repository|
-        hash[repository] = RepositoryConfig.new(false, nil, {})
+      @repository_info.default_proc = proc {|hash, repository|
+        hash[repository] = RepositoryInfo.new(false, nil, {})
 
-        matches = @loaded_config.select do |pattern, value|
+        matches = (config['repositories'] || {}).select do |pattern, value|
           repository =~ /^#{ pattern.gsub(/^([^\/]+\/)??\*+/, '\1[^/]+').gsub(/\*+/, '[^/]*') }$/
         end
         exact_match = matches.delete(repository) || {}
@@ -54,16 +62,16 @@ class GithubMirror
       }
     end
 
-    @config["#{repository_owner}/#{repository_name}"]
+    @repository_info["#{repository_owner}/#{repository_name}"]
   end
-  RepositoryConfig = Struct.new(:allowed, :path, :patterns) # :nodoc:
+  RepositoryInfo = Struct.new(:allowed, :path, :patterns) # :nodoc:
 
   # Return a expanded path to repository mirror build with information
   # from configuration for repository. Replace keywords (:keyword) with
   # value matched by it pattern.
   def mirror_path(repository_owner, repository_name)
-    mirror_path = config(repository_owner, repository_name).path || raise(GithubMirrorError, "Path for repository '#{repository_owner}/#{repository_name}' don't exist in config")
-    mirror_patterns = config(repository_owner, repository_name).patterns
+    mirror_path = repository_info(repository_owner, repository_name).path || raise(GithubMirrorError, "Path for repository '#{repository_owner}/#{repository_name}' doesn\'t exist in config")
+    mirror_patterns = repository_info(repository_owner, repository_name).patterns
 
     keys = mirror_path.scan(/:(\w+)/).flatten
     unless keys.empty?
@@ -99,7 +107,7 @@ class GithubMirror
     repository_private = payload['repository']['private'] == '1' ? true : false
 
     # check if repository can be mirrored
-    unless config(repository_owner, repository_name).allowed
+    unless repository_info(repository_owner, repository_name).allowed
       raise(GithubMirrorError, "Repository #{repository_owner}/#{repository_name} is not allowed to be mirrored")
     end
 
