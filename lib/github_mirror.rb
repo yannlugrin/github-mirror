@@ -98,6 +98,7 @@ class GithubMirror
   # message in body if an error raised
   def handle_request
     raise GithubMirrorError, 'Only POST request allowed' unless @request.post? # return fail message if request is not a POST
+    raise GithubMirrorError, 'Token not match' if config['token'] && !@request.path_info.end_with?('/' + config['token'])
 
     payload = JSON.parse(@request[:payload]) rescue raise(GithubMirrorError, 'Payload param need to be present and a valid JSON string')
 

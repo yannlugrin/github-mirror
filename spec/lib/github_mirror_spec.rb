@@ -262,6 +262,33 @@ describe 'GithubMirror' do
       last_response.body.should == 'done'
     end
 
+    it 'should reply with success message on POST if token match' do
+      @app.stub!(:config).and_return(config({'token' => 'TOKEN'}))
+
+      post '/TOKEN', :payload => GITHUB_JSON.to_json
+
+      last_response.should be_ok
+      last_response.body.should == 'done'
+    end
+
+    it 'should reply with fail message on POST if token not match' do
+      @app.stub!(:config).and_return(config({'token' => 'TOKEN'}))
+
+      post '/FAILTOKEN', :payload => GITHUB_JSON.to_json
+
+      last_response.should be_ok
+      last_response.body.should =~ /fail:/
+    end
+
+    it 'should reply with success message on POST if no token is configured' do
+      @app.stub!(:config).and_return(config({'token' => nil}))
+
+      post '/TOKEN', :payload => GITHUB_JSON.to_json
+
+      last_response.should be_ok
+      last_response.body.should == 'done'
+    end
+
     it 'should reply with fail message if owner is not allowed to be mirrored' do
       @app.stub!(:config).and_return(config({'repositories' => {"#{repository_owner}/*" => {'allowed' => false}}}))
 
