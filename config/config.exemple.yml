@@ -1,0 +1,10 @@
+*/*:
+  allowed: false
+  path: '/change/this/path/to/repositories/root/:exemple.git'
+  patterns:
+    exemple: ^(.+)$
+liquidconcept/*: &liquidconcept
+  allowed: true
+  path: '/another/path'
+yannlugrin/*:
+  <<: *liquidconcept

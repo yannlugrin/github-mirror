@@ -16,15 +16,36 @@ class GithubMirrorApp
 
   private
 
-  def config
-    @config ||= YAML.load_file(File.expand_path('../../config/config.yml', __FILE__))
+  def config(repository_owner, repository_name, reload = false)
+    if @loaded_config.nil? || reload
+      @loaded_config = YAML.load_file(File.expand_path('../../config/config.yml', __FILE__))
+
+      @config = {}
+      @config.default_proc = proc {|hash, repository|
+        hash[repository] = Struct.new(:allowed, :path, :patterns).new(false, nil, {})
+
+        matches = @loaded_config.select do |pattern, value|
+          repository =~ /^#{ pattern.gsub(/^([^\/]+\/)??\*+/, '\1[^/]+').gsub(/\*+/, '[^/]*') }$/
+        end
+        exact_match = matches.delete(repository) || {}
+
+        hash[repository].members.each do |key|
+          matches.sort {|a, b| a.first <=> b.first }.map {|v| v.last}.each do |match|
+            hash[repository][key] = match[key.to_s] if match.has_key?(key.to_s) && !match[key.to_s].nil?
+          end
+          hash[repository][key] = exact_match[key.to_s] if exact_match.has_key?(key.to_s) && !exact_match[key.to_s].nil?
+        end
+
+        hash[repository]
+      }
+    end
+
+    @config["#{repository_owner}/#{repository_name}"]
   end
 
   def local_path(repository_owner, repository_name)
-    mirror_config = config['mirrors']["#{repository_owner}/#{repository_name}"] || config['mirrors']['default']
-
-    mirror_path = mirror_config['path'] || raise(GithubMirrorError, "Path for repository '#{repository_owner}/#{repository_name}' don't exist in config")
-    mirror_patterns = mirror_config['patterns'] || {}
+    mirror_path = config(repository_owner, repository_name).path || raise(GithubMirrorError, "Path for repository '#{repository_owner}/#{repository_name}' don't exist in config")
+    mirror_patterns = config(repository_owner, repository_name).patterns
 
     keys = mirror_path.scan(/:(\w+)/).flatten
     unless keys.empty?
@@ -58,7 +79,7 @@ class GithubMirrorApp
     repository_private = payload['repository']['private'] == '1' ? true : false
 
     # check if repository can be mirrored
-    unless (config['allowed'] || ['*/*']).any? {|allowed_pattern| "#{repository_owner}/#{repository_name}" =~ /^#{allowed_pattern.gsub(/\*+/, '[^/]+')}$/ }
+    unless config(repository_owner, repository_name).allowed
       raise(GithubMirrorError, "Repository #{repository_owner}/#{repository_name} is not allowed to be mirrored")
     end
 

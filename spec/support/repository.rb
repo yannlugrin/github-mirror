@@ -29,10 +29,9 @@ end
 
 def config(config = {})
   {
-    'mirrors' => {
-      'default' => {
-        'path' => File.expand_path('../../fixtures/mirrors_root', __FILE__)
-      }
+    '*/*' => {
+      'allowed' => true,
+      'path'    => File.expand_path('../../fixtures/mirrors_root', __FILE__)
     }
   }.merge(config)
 end

@@ -14,10 +14,12 @@ Dir[File.expand_path('../support/**/*.rb', __FILE__)].each {|f| require f}
 
 # Configure Rspec
 RSpec.configure do |config|
-  config.mock_with :rspec
-
-  # Include the Rack test methods
   config.include Rack::Test::Methods
+
+  config.filter_run_including :focus  => true
+  config.run_all_when_everything_filtered = true
+
+  config.mock_with :rspec
 
   config.before(:each) do
     @app = GithubMirrorApp.new
