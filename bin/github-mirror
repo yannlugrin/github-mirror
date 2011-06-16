@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require 'rack'
+
+if ARGV.empty? || !File.exist?(ARGV.last)
+  ARGV << File.expand_path('../../config/config.ru', __FILE__)
+end
+
+Rack::Server.start
