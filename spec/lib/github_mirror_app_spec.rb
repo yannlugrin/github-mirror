@@ -126,7 +126,7 @@ describe 'GithubMirrorApp' do
 
   end
 
-  context '#local_path' do
+  context '#mirror_path' do
 
     it 'should append repository_name to path wihtout replacement key' do
      YAML.stub!(:load_file).and_return(config({
@@ -135,7 +135,7 @@ describe 'GithubMirrorApp' do
           'path'    => '/tmp/repo/'
         }
       }))
-      @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
     end
 
     it 'should replace :repository_name key with repository name value if don\'t have pattern for repository_name' do
@@ -146,7 +146,7 @@ describe 'GithubMirrorApp' do
           'patterns' => nil
         }
       }))
-      @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
     end
 
     it 'should replace :repository_name key with value matched by pattern for repository_name key' do
@@ -159,7 +159,7 @@ describe 'GithubMirrorApp' do
           }
         }
       }))
-      @app.send(:local_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/repo_name.git'
     end
 
     it 'should replace :custom_name key with value matched by pattern for custom_name key' do
@@ -172,7 +172,7 @@ describe 'GithubMirrorApp' do
           }
         }
       }))
-      @app.send(:local_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/repo_name.git'
     end
 
     it 'should replace multiples keys with value matched by key patterns' do
@@ -186,7 +186,7 @@ describe 'GithubMirrorApp' do
           }
         }
       }))
-      @app.send(:local_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/before/repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'before-repo_name').should == '/tmp/repo/before/repo_name.git'
     end
 
     it 'should replace :repository_owner key with repository owner value if don\'t have pattern for repository_owner' do
@@ -197,7 +197,7 @@ describe 'GithubMirrorApp' do
           'patterns' => nil
         }
       }))
-      @app.send(:local_path, 'owner_name', 'repo_name').should == '/tmp/repo/owner_name/repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'repo_name').should == '/tmp/repo/owner_name/repo_name.git'
     end
 
     it 'should replace :repository_owner key with value matched by pattern for repository_owner key' do
@@ -210,7 +210,7 @@ describe 'GithubMirrorApp' do
           }
         }
       }))
-      @app.send(:local_path, 'owner_name', 'custom_owner-repo_name').should == '/tmp/repo/custom_owner/custom_owner-repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'custom_owner-repo_name').should == '/tmp/repo/custom_owner/custom_owner-repo_name.git'
     end
 
   end

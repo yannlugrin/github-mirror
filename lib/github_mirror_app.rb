@@ -1,10 +1,13 @@
 require 'rack'
 require 'json'
 
+# A Rack application to handle hooks from Github to
+# mirroring repositories
 class GithubMirrorApp
+  class GithubMirrorError < StandardError # :nodoc:
+  end
 
-  class GithubMirrorError < StandardError; end
-
+  # Rack API method
   def call(env)
     @request  = Rack::Request.new(env)
     @response = Rack::Response.new
@@ -16,13 +19,23 @@ class GithubMirrorApp
 
   private
 
+  # Return an object with reader method for allowed, path and patterns
+  # attributes builded from configuration file.
+  #
+  # Merge from configuration file in following order:
+  # - repository_owner/repository_name
+  # - repository_owner/repository_name*
+  # - repository_owner/*
+  # - repository_owner/*
+  # - repository_owner*/*
+  # - */*
   def config(repository_owner, repository_name, reload = false)
     if @loaded_config.nil? || reload
       @loaded_config = YAML.load_file(File.expand_path('../../config/config.yml', __FILE__))
 
       @config = {}
       @config.default_proc = proc {|hash, repository|
-        hash[repository] = Struct.new(:allowed, :path, :patterns).new(false, nil, {})
+        hash[repository] = RepositoryConfig.new(false, nil, {})
 
         matches = @loaded_config.select do |pattern, value|
           repository =~ /^#{ pattern.gsub(/^([^\/]+\/)??\*+/, '\1[^/]+').gsub(/\*+/, '[^/]*') }$/
@@ -35,6 +48,7 @@ class GithubMirrorApp
           end
           hash[repository][key] = exact_match[key.to_s] if exact_match.has_key?(key.to_s) && !exact_match[key.to_s].nil?
         end
+        hash[repository].freeze
 
         hash[repository]
       }
@@ -42,8 +56,12 @@ class GithubMirrorApp
 
     @config["#{repository_owner}/#{repository_name}"]
   end
+  RepositoryConfig = Struct.new(:allowed, :path, :patterns) # :nodoc:
 
-  def local_path(repository_owner, repository_name)
+  # Return a expanded path to repository mirror build with information
+  # from configuration for repository. Replace keywords (:keyword) with
+  # value matched by it pattern.
+  def mirror_path(repository_owner, repository_name)
     mirror_path = config(repository_owner, repository_name).path || raise(GithubMirrorError, "Path for repository '#{repository_owner}/#{repository_name}' don't exist in config")
     mirror_patterns = config(repository_owner, repository_name).patterns
 
@@ -67,6 +85,8 @@ class GithubMirrorApp
     mirror_path
   end
 
+  # Handle request from Github, return always success response, but write an error
+  # message in body if an error raised
   def handle_request
     raise GithubMirrorError, 'Only POST request allowed' unless @request.post? # return fail message if request is not a POST
 
@@ -91,7 +111,7 @@ class GithubMirrorApp
     end
 
     # get mirror path
-    repository_path = local_path(repository_owner, repository_name)
+    repository_path = mirror_path(repository_owner, repository_name)
 
     # clone repository if mirror doesn't exist
     unless File.exist?(repository_path)
