@@ -86,7 +86,7 @@ class GithubMirror
         mirror_path.gsub!(/:#{key}/, value)
       end
     else
-      mirror_path = File.join(mirror_path, "#{repository_name}.git")
+      mirror_path = File.join(mirror_path, "#{repository_owner}/#{repository_name}.git")
     end
     mirror_path += '.git' unless mirror_path.match(/\.git$/)
 

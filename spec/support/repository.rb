@@ -24,7 +24,7 @@ def repository_url
 end
 
 def mirror_path(repository_name = repository_name)
-  File.join(File.expand_path('../../fixtures/mirrors_root', __FILE__), "#{repository_name}.git")
+  File.join(File.expand_path('../../fixtures/mirrors_root', __FILE__), "#{repository_owner}/#{repository_name}.git")
 end
 
 def config(override = {})

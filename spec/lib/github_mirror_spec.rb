@@ -137,14 +137,14 @@ describe 'GithubMirror' do
 
   context '#mirror_path' do
 
-    it 'should append repository_name to path wihtout replacement key' do
+    it 'should append owner_name/repository_name.git to path wihtout replacement key' do
      @app.stub!(:config).and_return(config({'repositories' => {
         '*/*' => {
           'allowed' => true,
           'path'    => '/tmp/repo/'
         }
       }}))
-      @app.send(:mirror_path, 'owner_name', 'repo_name').should == '/tmp/repo/repo_name.git'
+      @app.send(:mirror_path, 'owner_name', 'repo_name').should == '/tmp/repo/owner_name/repo_name.git'
     end
 
     it 'should replace :repository_name key with repository name value if don\'t have pattern for repository_name' do
