@@ -1,22 +1,16 @@
-source "http://rubygems.org"
+source 'http://rubygems.org'
 
-gem 'rack'
-gem 'json'
+gemspec
 
-group :development, :test do
-  gem 'rspec'
-  gem 'rack-test'
-
-  gem 'guard'
-  gem 'guard-rspec'
-  gem 'guard-bundler'
-end
-
+# run `bundle install --without=linux` first time to ignore linux
+# dependencies
 group :linux do
   gem 'rb-inotify', ['>= 0.8.5',  '~> 0.8']
   gem 'libnotify'
 end
 
+# run `bundle install --without=osx` first time to ignore osx
+# dependencies
 group :osx do
   gem 'rb-fsevent'
   gem 'growl'

@@ -45,7 +45,7 @@ INVALID_JSON = JSON.parse(
 INVALID_JSON
 )
 
-describe 'GithubMirrorApp' do
+describe 'GithubMirror' do
 
   before(:each) do
     YAML.stub!(:load_file).and_return(config)

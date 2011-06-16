@@ -3,7 +3,7 @@ require 'json'
 
 # A Rack application to handle hooks from Github to
 # mirroring repositories
-class GithubMirrorApp
+class GithubMirror
   class GithubMirrorError < StandardError # :nodoc:
   end
 

@@ -6,7 +6,7 @@ require 'rack/test'
 require 'rspec'
 
 # Require application
-require File.expand_path('../../lib/github_mirror_app', __FILE__)
+require File.expand_path('../../lib/github_mirror', __FILE__)
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
@@ -22,7 +22,7 @@ RSpec.configure do |config|
   config.mock_with :rspec
 
   config.before(:each) do
-    @app = GithubMirrorApp.new
+    @app = GithubMirror.new
   end
 end
 
