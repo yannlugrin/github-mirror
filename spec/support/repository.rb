@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 def repository_owner(repository_owner = nil)
   GITHUB_JSON['repository']['owner']['name'] = repository_owner if repository_owner
   GITHUB_JSON['repository']['owner']['name']

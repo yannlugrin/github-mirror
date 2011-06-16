@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 guard 'bundler' do
   watch('Gemfile')
 end
@@ -13,4 +15,3 @@ guard 'rspec', :version => 2 do
   watch(%r{^spec/support/(.+)\.rb$})                  { "spec" }
   watch('spec/spec_helper.rb')                        { "spec" }
 end
-

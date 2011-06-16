@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# encoding: utf-8
 Kernel.load File.expand_path('../lib/github_mirror/version.rb', __FILE__)
 
 Gem::Specification.new do |s|
