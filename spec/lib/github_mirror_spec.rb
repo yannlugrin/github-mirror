@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'github_mirror'
 require 'spec_helper'
 
 GITHUB_JSON = JSON.parse(
@@ -46,9 +47,15 @@ INVALID_JSON = JSON.parse(
 INVALID_JSON
 )
 
+def app
+  @app
+end
+
 describe 'GithubMirror' do
+  include Rack::Test::Methods
 
   before(:each) do
+    @app = GithubMirror.new
     @app.stub!(:config).and_return(config)
     @app.stub!(:system).and_return(true)
     @app.stub!(:`).and_return('')
