@@ -5,6 +5,9 @@ require 'json'
 # A Rack application to handle hooks from Github to
 # mirroring repositories
 class GithubMirror
+
+  autoload :Mirror, 'github_mirror/mirror'
+
   class GithubMirrorError < StandardError # :nodoc:
   end
 
