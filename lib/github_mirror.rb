@@ -8,6 +8,7 @@ class GithubMirror
 
   autoload :Config, 'github_mirror/config'
   autoload :Mirror, 'github_mirror/mirror'
+  autoload :Rack,   'github_mirror/rack'
 
   class GithubMirrorError < StandardError # :nodoc:
   end
@@ -18,8 +19,8 @@ class GithubMirror
 
   # Rack API method
   def call(env)
-    @request  = Rack::Request.new(env)
-    @response = Rack::Response.new
+    @request  = ::Rack::Request.new(env)
+    @response = ::Rack::Response.new
 
     handle_request
 

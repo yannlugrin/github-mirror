@@ -52,7 +52,7 @@ def app
 end
 
 describe 'GithubMirror' do
-  include Rack::Test::Methods
+  include ::Rack::Test::Methods
 
   before(:each) do
     @app = GithubMirror.new
