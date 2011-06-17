@@ -101,6 +101,124 @@ describe GithubMirror::Config do
         subject.token.should be_nil
       end
 
+      it 'should be set on reload' do
+        subject.load({})
+        subject.token.should be_nil
+
+        subject.load({
+          'token' => 'TOKEN'
+        })
+        subject.token.should == 'TOKEN'
+      end
+
+    end
+
+  end
+
+  context '::repository_info' do
+
+    describe 'on load' do
+
+      it 'should be an empty Hash by default' do
+        subject.load({})
+        subject.instance.instance_variable_get(:@repositories_config).should == {}
+      end
+
+      it 'should be set with configuration Hash' do
+        config = {
+          'repositories' => {
+            '*/*' => {
+              'allowed' => true
+            }
+          }
+        }
+
+        subject.load(config)
+        subject.instance.instance_variable_get(:@repositories_config).should == config['repositories']
+      end
+
+      it 'should be set on reload' do
+        config = {
+          'repositories' => {
+            '*/*' => {
+              'allowed' => true
+            }
+          }
+        }
+
+        subject.load({})
+        subject.instance.instance_variable_get(:@repositories_config).should == {}
+
+        subject.load(config)
+        subject.instance.instance_variable_get(:@repositories_config).should == config['repositories']
+      end
+
+    end
+
+    it 'should require tow arguments' do
+      lambda { subject.repository_info }.should raise_error(ArgumentError, /wrong number of arguments \(0 for 2\)/)
+    end
+
+    it 'should be a "RepositoryInfo" Struct' do
+      subject.repository_info('repository_owner', 'repository_name').should be_a Struct
+      subject.repository_info('repository_owner', 'repository_name').should be_a GithubMirror::Config::RepositoryInfo
+    end
+
+    it 'allowed should be false by default' do
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == false
+    end
+
+    it 'path should be `[working dir]/repositories` by default' do
+      subject.repository_info('repository_owner', 'repository_name').path.should == File.expand_path('./repositories')
+    end
+
+    it 'patterns should be empty by default' do
+      subject.repository_info('repository_owner', 'repository_name').patterns.should == {}
+    end
+
+    it 'should set values from "*/*" matcher' do
+      subject.load({'repositories' => {'*/*' => {'allowed' => true}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == true
+
+      subject.load({'repositories' => {'*/*' => {'allowed' => false}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == false
+    end
+
+    it 'should set values from "repository_owner*/*" matcher' do
+      subject.load({'repositories' => {'*/*' => {'allowed' => false}, 'repository_owner*/*' => {'allowed' => true}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == true
+
+      subject.load({'repositories' => {'*/*' => {'allowed' => true}, 'repository_owner*/*' => {'allowed' => false}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == false
+    end
+
+    it 'should set values from "repository_owner/*" matcher' do
+      subject.load({'repositories' => {'repository_owner*/*' => {'allowed' => false}, 'repository_owner/*' => {'allowed' => true}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == true
+
+      subject.load({'repositories' => {'repository_owner*/*' => {'allowed' => true}, 'repository_owner/*' => {'allowed' => false}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == false
+    end
+
+    it 'should set values from "repository_owner/repository_name*" matcher' do
+      subject.load({'repositories' => {'repository_owner/*' => {'allowed' => false}, 'repository_owner/repository_name*' => {'allowed' => true}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == true
+
+      subject.load({'repositories' => {'repository_owner/*' => {'allowed' => true}, 'repository_owner/repository_name*' => {'allowed' => false}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == false
+    end
+
+    it 'should set values from "repository_owner/repository_name" matcher' do
+      subject.load({'repositories' => {'repository_owner/repository_name*' => {'allowed' => false}, 'repository_owner/repository_name' => {'allowed' => true}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == true
+
+      subject.load({'repositories' => {'repository_owner/repository_name*' => {'allowed' => true}, 'repository_owner/repository_name' => {'allowed' => false}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == false
+    end
+
+    it 'should not set value if be nil' do
+      subject.load({'repositories' => {'*/*' => {'allowed' => true}, 'repository_owner/repository_name' => {'allowed' => nil}}})
+      subject.repository_info('repository_owner', 'repository_name').allowed.should == true
     end
 
   end
