@@ -1,5 +1,17 @@
 # encoding: utf-8
 
+def stub_repository_info(attrs = {})
+    attrs = [attrs] unless attrs.is_a?(Array)
+    attrs.map! do |a|
+      GithubMirror::Config::RepositoryInfo.new(
+        a[:allowed]  || false,
+        a[:path]     || File.expand_path('./repositories'),
+        a[:patterns] || {}
+      )
+    end
+  GithubMirror::Config.stub!(:repository_info).and_return(*attrs)
+end
+
 def repository_owner(repository_owner = nil)
   GITHUB_JSON['repository']['owner']['name'] = repository_owner if repository_owner
   GITHUB_JSON['repository']['owner']['name']
