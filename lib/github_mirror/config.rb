@@ -13,7 +13,12 @@ class GithubMirror
       instance.load(config)
     end
 
-    protected
+    def self.token
+      instance.token
+    end
+
+    attr_reader :token
+
 
     def load(config)
       # load from YAML file
@@ -26,6 +31,9 @@ class GithubMirror
       else
         raise(ArgumentError, 'must be a valid file path or Hash') unless config.is_a?(Hash)
       end
+
+      # set token value
+      @token = !config['token'].to_s.strip.empty? ? config['token'].to_s.strip.freeze : nil
 
     end
   end
