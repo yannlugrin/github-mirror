@@ -6,6 +6,7 @@ require 'json'
 # mirroring repositories
 class GithubMirror
 
+  autoload :Config, 'github_mirror/config'
   autoload :Mirror, 'github_mirror/mirror'
 
   class GithubMirrorError < StandardError # :nodoc:

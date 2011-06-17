@@ -5,6 +5,8 @@ ENV['RACK_ENV'] ||= 'test'
 require 'rack/test'
 require 'rspec'
 
+require 'github_mirror'
+
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Dir[File.expand_path('../support/**/*.rb', __FILE__)].each {|f| require f}
