@@ -20,7 +20,7 @@ describe GithubMirror::Config do
     describe 'from file' do
 
       it 'should raise an error if file not exist' do
-        lambda { subject.send(:load, "fake_#{rand(99999)}.yml") }.should raise_error(ArgumentError, /File must exist/)
+        lambda { subject.send(:load, "fake_#{rand(99999)}.yml") }.should raise_error(ArgumentError, /file must exist/)
       end
 
       it 'should raise an error if file have syntax error' do
@@ -33,10 +33,14 @@ describe GithubMirror::Config do
 
       it 'should raise an error if can\'t be parsed to Hash' do
         Tempfile.open('fake.yaml') do |config_file|
-          lambda { subject.send(:load, config_file.path) }.should raise_error(ArgumentError, /File content must be a Hash/)
+          lambda { subject.send(:load, config_file.path) }.should raise_error(ArgumentError, /file content must be a Hash/)
         end
       end
 
+    end
+
+    it 'should raise an error if argument is not a valid file or a Hash' do
+      lambda { subject.send(:load, []) }.should raise_error(ArgumentError, /must be a valid file path or Hash/)
     end
 
   end

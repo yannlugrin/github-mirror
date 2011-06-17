@@ -19,9 +19,12 @@ class GithubMirror
       # load from YAML file
       if config.is_a?(String)
         config_path = File.expand_path(config)
-        raise(ArgumentError, "File must exist (#{config_path})") unless File.exist?(config_path)
+        raise(ArgumentError, "file must exist (#{config_path})") unless File.exist?(config_path)
         config = YAML.load_file(config_path)
-        raise(ArgumentError, "File content must be a Hash (#{config_path})") unless config.is_a?(Hash)
+        raise(ArgumentError, "file content must be a Hash (#{config_path})") unless config.is_a?(Hash)
+      # or check if is a Hash
+      else
+        raise(ArgumentError, 'must be a valid file path or Hash') unless config.is_a?(Hash)
       end
 
     end
