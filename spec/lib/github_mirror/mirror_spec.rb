@@ -16,6 +16,10 @@ describe GithubMirror::Mirror do
     subject.should respond_to(:name)
   end
 
+  pending 'should respond to #private?' do
+    subject.should respond_to(:private?)
+  end
+
   describe 'initialization' do
 
     it 'should set repository owner' do
@@ -61,6 +65,20 @@ describe GithubMirror::Mirror do
         GithubMirror::Mirror.new(repository_owner, '')
       end.should raise_error(ArgumentError, /name attribute can't be empty/)
     end
+
+    pending 'should set repository privacy'
+    pending 'should raise error if repository privacy is not set'
+
+    pending 'should be load from paylod'
+
+  end
+
+  context '#update' do
+
+    pending 'should raise error if all repositories are not allowed to be mirrored'
+    pending 'should not raise error if all repositories are allowed to be mirrored'
+    pending 'should raise error if repository is not allowed to be mirrored'
+    pending 'should not raise error if repository is allowed to be mirrored'
 
   end
 
